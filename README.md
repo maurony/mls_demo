@@ -1,6 +1,6 @@
-# Package 'tritelligence'
+# Working SQL ML Services
 
-This package aims implements statistical and machine learning algorithms that can be integrated into business intelligence solutions; either via `sp_execute_external_script` in T-SQL or any other R-interface (such as e.g. Power-BI). The main focus of this package are automatic prediction algorithms, that can be easily implemented in customer projects or in presentations. Also, functions for customizing existing or building new models are provided.
+This document demonstrates how to use SQL ML Services, essentially illustrating how to easily operationalize R code in SQL Server.
 
 ## Requirements
 
@@ -14,21 +14,21 @@ Please note that MLS is likely to use an older version of R than available on th
 
 ```{R}
 > version
-
+               _                           
 platform       x86_64-w64-mingw32          
 arch           x86_64                      
 os             mingw32                     
 system         x86_64, mingw32             
 status                                     
 major          3                           
-minor          3.3                         
+minor          4.3                         
 year           2017                        
-month          03                          
-day            06                          
-svn rev        72310                       
+month          11                          
+day            30                          
+svn rev        73796                       
 language       R                           
-version.string R version 3.3.3 (2017-03-06)
-nickname       Another Canoe     
+version.string R version 3.4.3 (2017-11-30)
+nickname       Kite-Eating Tree    
 ```
 
 Please note, that code implemented using a newer version of Microsoft R Open might not work on the MLS (SQL Server 2017).
@@ -42,9 +42,115 @@ RECONFIGURE WITH OVERRIDE;
 
 Sometimes the server instance has to be restarted to change the `run_config`; to do this, go to `Services` and restart the corresponding SQL Server Instance.
 
-## Package installation
+### MRO Client
 
-### Manual installation
+To work from a client workstation with SQL Server ML Services, you can download the Microsoft R Client. To do this, please make sure you follow the [official installation instructions of Microsoft](https://docs.microsoft.com/en-us/machine-learning-server/r-client/install-on-windows) that best fit your needs (online/offline/dev). After successful installation, please verify that you have installed all the packages necessary to work with ML Services (RevoScaleR etc). 
+
+## Package Management
+
+There are several ways of installing new R or Python packages on the SQL Server; please see the [official documentation of Microsoft](https://docs.microsoft.com/en-us/machine-learning-server/operationalize/configure-manage-r-packages) to get an overview of the different options.
+
+### Overall Workflow
+
+It is suggested, that a simple workflow is established to install packages on production systems. At this point and after discussions with the internal it, the following workflow seems to fit best the current needs:
+
+1. The data scientist connects to the SQL Server and gets data or a subset of the data and starts developing machine learning algorithms. Optionally, the data scientist installs packages needed for this task in a miniCRAN repository.
+2. Once the algorithm is developed, tested and ready for production; the data scientist provides a de
+
+### Example
+
+A simple way how you can iYou can create a local R package repository of the R packages you need using the R package `miniCRAN`. You can then copy this repository to all compute nodes and then install directly from this repository.
+
+This production-safe approach provides an excellent way to:
+
+- Keep a standard, sanctioned library of R packages for production use
+- Allow packages to be installed in an offline environment
+
+**To use the miniCRAN method:**
+
+1. On the machine with Internet access:
+
+   1. Launch your preferred R IDE or an R tool such as Rgui.exe.
+
+   2. At the R prompt, install the `miniCRAN` package on a computer that has Internet access.
+
+      R			 				 Copy			 
+
+      ```R
+      if(!require("miniCRAN")) install.packages("miniCRAN")
+      if(!require("igraph")) install.packages("igraph")
+      library(miniCRAN)
+      ```
+
+   3. To point to a different snapshot, set the `CRAN_mirror` value. By default, the CRAN mirror specified by your version of Microsoft R Open is used. For example, for Machine Learning Server 9.2.1 that date is 2017-09-01.
+
+      R			 				 Copy			 
+
+      ```R
+      # Define the package source: a CRAN mirror, or an MRAN snapshot
+      CRAN_mirror <- c(CRAN = "https://mran.microsoft.com/snapshot/2016-11-01")
+      ```
+
+   4. Create a miniCRAN repository in which the packages are downloaded and installed.  This repository creates the folder structure that you need to copy the packages to each compute node later.
+
+      R			 				 Copy			 
+
+      ```R
+      # Define the local download location
+      local_repo <- "~/my-miniCRAN-repo"
+      ```
+
+   5. Download and install the packages you need to this computer.
+
+      R			 				 Copy			 
+
+      ```R
+      # List the packages you need 
+      # Do not specify dependencies
+      pkgs_needed <- c("Package-A", "Package-B", "Package-...")
+      ```
+
+       Note
+
+      If you aren't sure which packages to list, consider using a list of the top “n” (e.g. 500) packages by download/popularity as a starting point. Then, extend with additional packages as needed over time. For Mac and Windows binaries, it is possible to look at the particular bin/contrib repo you’re interested in, for example: https://cran.microsoft.com/snapshot/2018-01-16/bin/windows/contrib/3.4/PACKAGES
+
+      It is also possible to [create your own mirror](https://cran.r-project.org/mirror-howto.html) to get ALL packages instead of using miniCRAN; however, this would be very large and grow stale quickly requiring regular updates.
+
+2. On each compute node:
+
+   1. Copy the miniCRAN repository from the machine with Internet connectivity to the R_SERVICES library on the SQL Server instance.
+
+   2. Launch your preferred R IDE or an R tool such as Rgui.exe.
+
+   3. At the R prompt, run the R command install.packages().
+
+   4. At the prompt, specify a repository and specify the directory containing the files you copied. That is, the local miniCRAN repository.
+
+      R			 				 Copy			 
+
+      ```R
+      pkgs_needed <- c("Package-A", "Package-B", "Package-...")
+      local_repo  <- "~/my-miniCRAN-repo"
+      
+      install.packages(pkgs_needed, 
+              repos = file.path("file://", normalizePath(local_repo, winslash = "/")),
+              dependencies = TRUE
+      )
+      ```
+
+   5. Run the following R command and reviewing the list of installed packages:
+
+      R			 				 Copy			 
+
+      ```R
+      installed.packages()
+      ```
+
+
+
+
+
+
 
 To use `tritelligence` you need to install the binary of the package and all of its dependencies for the R version of the respective R MLS. This can be achieved by running the script below on the console R application of MLS (`R.exe`) located by default in the following directory `C:/Program Files/Microsoft SQL Server/<YOUR_INSTANCE_NAME>/R_SERVICES/bin` (please do not forget to replace `<YOUR_INSTANCE_NAME>` with your instance name):
 
