@@ -1,3 +1,5 @@
+
+
 # Working SQL ML Services
 
 This document demonstrates how to use SQL ML Services, essentially illustrating how to easily operationalize R code in SQL Server.
@@ -21,14 +23,14 @@ os             mingw32
 system         x86_64, mingw32             
 status                                     
 major          3                           
-minor          4.3                         
-year           2017                        
-month          11                          
-day            30                          
-svn rev        73796                       
+minor          5.2                         
+year           2018                        
+month          12                          
+day            20                          
+svn rev        75870                       
 language       R                           
-version.string R version 3.4.3 (2017-11-30)
-nickname       Kite-Eating Tree    
+version.string R version 3.5.2 (2018-12-20)
+nickname       Eggshell Igloo 
 ```
 
 Please note, that code implemented using a newer version of Microsoft R Open might not work on the MLS (SQL Server 2017).
@@ -46,18 +48,22 @@ Sometimes the server instance has to be restarted to change the `run_config`; to
 
 To work from a client workstation with SQL Server ML Services, you can download the Microsoft R Client. To do this, please make sure you follow the [official installation instructions of Microsoft](https://docs.microsoft.com/en-us/machine-learning-server/r-client/install-on-windows) that best fit your needs (online/offline/dev). After successful installation, please verify that you have installed all the packages necessary to work with ML Services (RevoScaleR etc). 
 
+### R development environment
+
+Additionally, you need an R development environment, such as e.g. [RStudio](https://rstudio.com/products/rstudio/), [R Tools for VS](https://visualstudio.microsoft.com/vs/features/rtvs/) or any other. Please also make sure that your IDE is pointing to the correct R version, especially if you have installed multiple versions of R on you system. 
+
 ## Package Management
 
 There are several ways of installing new R or Python packages on the SQL Server; please see the [official documentation of Microsoft](https://docs.microsoft.com/en-us/machine-learning-server/operationalize/configure-manage-r-packages) to get an overview of the different options.
 
-### Overall Workflow
+### Option 1: Offline installation
 
 It is suggested, that a simple workflow is established to install packages on production systems. At this point and after discussions with the internal it, the following workflow seems to fit best the current needs:
 
-1. The data scientist connects to the SQL Server and gets data or a subset of the data and starts developing machine learning algorithms. Optionally, the data scientist installs packages needed for this task in a miniCRAN repository.
-2. Once the algorithm is developed, tested and ready for production; the data scientist provides a de
+1. The data scientist connects to the SQL Server and gets data or a subset of the data and starts developing machine learning algorithms. Additionally, the data scientist installs packages needed for this task in a miniCRAN repository.
+2. Once the algorithm is developed, tested and ready for production; the data scientist provides the miniCRAN to the server admin, which installs the packages manually on the server. For a detailed example, please see the following example.
 
-### Example
+#### Example
 
 A simple way how you can iYou can create a local R package repository of the R packages you need using the R package `miniCRAN`. You can then copy this repository to all compute nodes and then install directly from this repository.
 
@@ -72,9 +78,7 @@ This production-safe approach provides an excellent way to:
 
    1. Launch your preferred R IDE or an R tool such as Rgui.exe.
 
-   2. At the R prompt, install the `miniCRAN` package on a computer that has Internet access.
-
-      R			 				 Copy			 
+   2. At the R prompt, install the `miniCRAN` package on a computer that has Internet access.	 
 
       ```R
       if(!require("miniCRAN")) install.packages("miniCRAN")
@@ -82,39 +86,27 @@ This production-safe approach provides an excellent way to:
       library(miniCRAN)
       ```
 
-   3. To point to a different snapshot, set the `CRAN_mirror` value. By default, the CRAN mirror specified by your version of Microsoft R Open is used. For example, for Machine Learning Server 9.2.1 that date is 2017-09-01.
-
-      R			 				 Copy			 
+   3. To point to a different snapshot, set the `CRAN_mirror` value. By default, the CRAN mirror specified by your version of Microsoft R Open is used. For example, for Microsoft R Client 3.5.2 that date is 2019-02-10. 
 
       ```R
       # Define the package source: a CRAN mirror, or an MRAN snapshot
-      CRAN_mirror <- c(CRAN = "https://mran.microsoft.com/snapshot/2016-11-01")
+      CRAN_mirror <- c(CRAN = "https://mran.microsoft.com/snapshot/2019-02-10")
       ```
 
    4. Create a miniCRAN repository in which the packages are downloaded and installed.  This repository creates the folder structure that you need to copy the packages to each compute node later.
-
-      R			 				 Copy			 
 
       ```R
       # Define the local download location
       local_repo <- "~/my-miniCRAN-repo"
       ```
 
-   5. Download and install the packages you need to this computer.
-
-      R			 				 Copy			 
+   5. Download and install the packages you need to this computer.	 
 
       ```R
       # List the packages you need 
       # Do not specify dependencies
-      pkgs_needed <- c("Package-A", "Package-B", "Package-...")
+      pkgs_needed <- c("tidyverse")
       ```
-
-       Note
-
-      If you aren't sure which packages to list, consider using a list of the top “n” (e.g. 500) packages by download/popularity as a starting point. Then, extend with additional packages as needed over time. For Mac and Windows binaries, it is possible to look at the particular bin/contrib repo you’re interested in, for example: https://cran.microsoft.com/snapshot/2018-01-16/bin/windows/contrib/3.4/PACKAGES
-
-      It is also possible to [create your own mirror](https://cran.r-project.org/mirror-howto.html) to get ALL packages instead of using miniCRAN; however, this would be very large and grow stale quickly requiring regular updates.
 
 2. On each compute node:
 
@@ -126,10 +118,8 @@ This production-safe approach provides an excellent way to:
 
    4. At the prompt, specify a repository and specify the directory containing the files you copied. That is, the local miniCRAN repository.
 
-      R			 				 Copy			 
-
       ```R
-      pkgs_needed <- c("Package-A", "Package-B", "Package-...")
+      pkgs_needed <- c("tidyverse")
       local_repo  <- "~/my-miniCRAN-repo"
       
       install.packages(pkgs_needed, 
@@ -140,207 +130,332 @@ This production-safe approach provides an excellent way to:
 
    5. Run the following R command and reviewing the list of installed packages:
 
-      R			 				 Copy			 
-
       ```R
       installed.packages()
       ```
 
+Fore more details, see [official documentation of Microsoft](https://docs.microsoft.com/en-us/machine-learning-server/operationalize/configure-manage-r-packages).
 
+### Option 2: Online installation
 
+If you do not have hardened environment without access to the internet, another - possibly easier option - is that packages are installed directly via `install.packages('package_1')`. The workflow would be as follows:
 
+1. The data scientist connects to the SQL Server and gets data or a subset of the data and starts developing machine learning algorithms. Additionally, the data scientist provides an installation script, listing each library that is necessary for the script to run.
+2. Once the algorithm is developed, tested and ready for production; the data scientist provides this installation script to the server admin, which installs the packages manually. For a detailed example, please see the following example.
 
+#### Example
 
+As mentioned before, it is imperative that the right set of R package versions are installed and accessible to all users. This options uses a _master_ R script containing the list of specific package versions to install across the configuration on behalf of your users. Using a master script ensures that the same packages (along with all its required package dependency) are installed each time.
 
-To use `tritelligence` you need to install the binary of the package and all of its dependencies for the R version of the respective R MLS. This can be achieved by running the script below on the console R application of MLS (`R.exe`) located by default in the following directory `C:/Program Files/Microsoft SQL Server/<YOUR_INSTANCE_NAME>/R_SERVICES/bin` (please do not forget to replace `<YOUR_INSTANCE_NAME>` with your instance name):
+This allows to
 
-```{R}
+- Keep a standard (and sanctioned) library of R packages for production use.
+- Manage R package dependencies and package versions.
+- Schedule timely updates to R packages.
+
+**To use a master script to install packages:**
+
+1. Create the master list of packages (and versions) in an R script format. For example:
+
+   ```R
+   pkgs <- c(
+   	"tidyverse"
+   )
+   install.packages(pkgs)
+   ```
+
+2. Manually run this R script on each compute node.
+
+> Update and manually rerun this script on each compute node each time a new package or version is needed in the server environment.
+
+If you keep you ML Server and/or ML Services R Version in sync with your MRO Client R Version, different versions of the individual R packages should be handled.
+
+## ML Services Example
+
+This is a simple example workflow of how connect to an existing database with ML Services installed, read data, build a model and create a stores procedure that runs this on the server.
+
+In this example, we use the online installation method to install new packages on the server. Thus, we define a `dependencies.R` file that contains all the packages needed to run the script successfully; which looks as follows:
+
+`dependencies.R`
+
+```R
+# ---------------------------------------
+# dependencies
+pkgs <- c(
+    'tidyverse'
+)
+
+# ---------------------------------------
 # install dependencies
-libPath <- 'C:/Program Files/Microsoft SQL Server/<YOUR_INSTANCE_NAME>/R_SERVICES/library'
-pkgs <-  c(
-  'forecast'
-  ,'smooth'
-  ,'forecTheta'
-  ,'tidyr'
-  ,'plyr'
-  ,'dplyr'
-  ,'tibble'
-  ,'ggplot2'
-  ,'lubridate'
-  ,'foreach'
-  ,'doSNOW'
-  ,'parallel'
-  ,'progress'
+install.packages(pkgs)
+```
+
+Having defined the packages needed to run the script on the server, we can now proceed to the (or possibly multiple) R script that trains a model and directly computes predictions. 
+
+> Note that usually you have multiple scripts or functions, such as e.g. a train script that trains a model and stores it in a table, and a score script that takes this model and computes predictions. However, for illustration purposes, we only use one script that directly performs the predictions.
+
+The script might be structured as follows, essentially sourcing `dependencies.R` defined earlier to load the important packages, then we might also use packages to e.g. explore the data or some other utility functions, that are not necessary to run the model on the server but are needed during the development phase. 
+
+`score.R` (library installation)
+
+```R
+# ---------------------------------------
+# source dependencies
+source('dependencies.R')
+
+# ---------------------------------------
+# source additional dependencies
+pkgs <- c(
+    'sqlmlutils', # used to deploy functions to SQL server
+    'ggplot2', # used for plotting
+    'viridis' # used for fancy coloring
 )
-install.packages(pkgs = pkgs, lib = libPath)
+# check, whether these packages are not installed yet
+new_pkgs <- pkgs[!(pkgs %in% installed.packages()[,"Package"])]
 
-# install tritelligence
-install.packages(
-    pkgs = 'path/to/zip/package/file/tritelligence_0.0.0.9.zip',
-    lib = libPath,
-    type = 'source',
-    repos = NULL)
+# if there are new packages, install them
+if(length(new_pkgs)) 
+  install.packages(new_pkgs)
+
+# ---------------------------------------
+# import packages
+library(tidyverse)
+library(sqlmlutils)
+library(ggplot2)
+library(viridis)
+
 ```
 
-### Installation via github
+After successful package installation with a subsequent import of the same, we can now proceed with connecting to the server. The previously loaded package, makes it very easy to construct a correctly formatted connection string that connects to an existing database server. In [R Tools for VS](https://visualstudio.microsoft.com/vs/features/rtvs/) you can also directly import the connection, essentially creating a settings.R file that creates list containing all the connections etc. To keep tool agnostic, lets use the functionality of `sqlmlutils`:
 
-Note that you need access the this repository to do this; please ask the maintainer (ypmauron@gmail.com) for a github_pat.
+`score.R` (import data from sql server)
 
-```{R}
-library(devtools)
-devtools::install_github(repo = 'maurony/tritelligence', ref = 'master')
+```R
+# ---------------------------------------
+# set the compute context
+rxSetComputeContext("local")
+
+# ---------------------------------------
+# define connection string
+SqlConnectionString <- connectionInfo(
+  server= "your server",
+  database = "your database"
+)
+
+# ---------------------------------------
+# define which table you want to use as a dataset
+table <- 'dbo.Payments' # not included as confidential
+
+# ---------------------------------------
+# create an SQL Server data object
+# query can be used to subset the data
+sqlServerDS <- RxSqlServerData(
+  sqlQuery = paste("SELECT * FROM", table),
+  connectionString = SqlConnectionString)
+
+# ---------------------------------------
+# Import data from sql server into a tibble
+payment <- rxImport(sqlServerDS) %>% 
+  as_tibble()
+
 ```
 
-### Installation via Docker Image
+Once imported into R, you can explore the data normally; such as e.g. exploring the data with plots etc.
 
-The entire package is also available as Docker Image and can therefore be installed as follows. 
+`score.R` (data exploration, plotting)
 
-```{sh}
-docker pull maurony/tritelligence:latest
+```R
+# ---------------------------------------
+# define simple plot function used in the preceding plots
+plot <- function(.){
+  p <- ggplot(., aes(x = key, y = value, fill = value)) +
+    scale_fill_viridis(option = 'magma', begin = 0.2, end = 0.8) +
+    geom_bar(stat = 'identity') +
+    facet_wrap(~grouping) +
+    coord_flip() +
+    theme_bw() +
+    theme(legend.position = 'none',
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank(),
+          text = element_text(size = 16),
+          plot.title = element_text(size = 28))
+  return(p)
+}  
+
+
+# ---------------------------------------
+# Analyse data by subsegment
+payment %>% 
+  mutate(
+    grouping = substr(SubSegment, 1, 4)
+  ) %>% 
+  group_by(grouping) %>% 
+  summarise(
+    AVG_Anz_Rechnungen = mean(Anzahl_Rechnungen),
+    AVG_MIN_DSO = mean(MIN_DSO),
+    AVG_MAX_DSO = mean(MAX_DSO),
+    AVG_AVG_DSO = mean(AVG_DSO),
+    AVG_AVG_LAST_3 = mean(AVG_DSO_LAST3),
+    AVG_STDEV_DSO = mean(STDEV_DSO)
+  ) %>% 
+  gather(., ... = starts_with('AVG')) %>% 
+  plot()
+
+# ---------------------------------------
+# Analyse data by Zahlungsbedingungen
+payment %>% 
+  mutate(
+    grouping = Zahlungsbedingungen
+  ) %>% 
+  group_by(grouping) %>% 
+  summarise(
+    AVG_Anz_Rechnungen = mean(Anzahl_Rechnungen),
+    AVG_MIN_DSO = mean(MIN_DSO),
+    AVG_MAX_DSO = mean(MAX_DSO),
+    AVG_AVG_DSO = mean(AVG_DSO),
+    AVG_AVG_LAST_3 = mean(AVG_DSO_LAST3),
+    AVG_STDEV_DSO = mean(STDEV_DSO)
+  ) %>% 
+  gather(., ... = starts_with('AVG')) %>% 
+  plot()
+
 ```
-Note that the package will come with additional time-series forecasting libraries and Microsoft R Open already installed on it. Again, at the moment this is all privately held and therefore you need the ask the maintainer (ypmauron@gmail.com) to give you the respective permissions.
 
-## Time series forecasting
+Then we might assume a normal distribution of the DSO per client, essentially using the mean and standard deviation to estimate the distribution to get the probability of a late payment per user.
 
-The following sections describe how the implemented algorithm can be used, how it internally works (high-level) as well as how it performs on empirical datasets.
+> Note that this is a simplistic example without properly testing other alternative approaches of modelling the problem. Also, we did not have access to the data to compute additional features.
 
-### The Algorithm
+`score.R` (data exploration, estimating distributions and more plotting)
 
-The main idea of the algorithm is to **fit** several forecasting methods (hereafter referred to as `experts`), **select** the best `n` ones per time series (selection) and **combine** the selected ones using a combination operator of your choice (mean, median, weighted average etc.). The selection of the experts is either achieved by manually selecting them (on the basis of prior knowledge) and let the algorithm only define the combination weights or, to let the algorithm select from a pool of experts and combine them based on the validation error. In recent literature, similar approaches - often referred to as  `combination` and `selection` - performed very well, eventually being one of the most accurate approaches used in many time series competitions, such as [M3](https://pdfs.semanticscholar.org/8461/b79f9747a0caee85522c49bd4655c64e10fb.pdf) and the very recent [M4](https://www.sciencedirect.com/science/article/pii/S0169207018300785) competition.
+```R
+# ---------------------------------------
+# Compute probabilities
+payment_attributes <- payment %>% 
+  select(AVG_DSO, STDEV_DSO, Anzahl_Rechnungen, PRECID, Zahlungsbedingungen) %>% 
+  mutate(
+    Zahlungsbedingung = ifelse(grepl('TN', Zahlungsbedingungen), gsub("TN", "", Zahlungsbedingungen), 0)
+  ) %>% 
+  transmute(
+    customer_id = PRECID,
+    sample_size = Anzahl_Rechnungen,
+    sigma = STDEV_DSO,
+    mu = AVG_DSO,
+    threshold = as.numeric(Zahlungsbedingung)
+  ) %>%
+  mutate(
+    prob_late = 1 - pnorm(q = threshold, mean = mu, sd = sigma),
+    prob_5T = 1 - pnorm(q = 5, mean = mu, sd = sigma),
+    prob_10T = 1 - pnorm(q = 10, mean = mu, sd = sigma),
+    prob_15T = 1 - pnorm(q = 15, mean = mu, sd = sigma),
+    prob_30T = 1 - pnorm(q = 30, mean = mu, sd = sigma),
+    prob_60T = 1 - pnorm(q = 60, mean = mu, sd = sigma),
+    prob_90T = 1 - pnorm(q = 90, mean = mu, sd = sigma),
+    sample_size_large_enough = ifelse(sample_size > 29, 1, 0)
+  ) 
 
-On a high level, the algorithm can be split into the following three major parts:
+# ---------------------------------------
+# define function to plot a sample
+plot_sample <- function(PRECID) {
+  sample <- payment_attributes %>% 
+    filter(customer_id == PRECID) 
+  
+  p <- ggplot(data = data.frame(x = c(0, 100)), aes(x)) +
+    stat_function(fun = dnorm, n = 101, args = list(mean = sample$mu, sd = sample$sigma)) + ylab("") +
+    scale_y_continuous(breaks = NULL) +
+    geom_vline(xintercept = sample$threshold, color = 'red') +
+    theme_bw()
+  
+  return(p)
+}
 
-![High-Level illustration of the algorithm](./docs/img/high_level_algorithm.png)
+# ---------------------------------------
+# Plot PRECID = 5637540588
+plot_sample(PRECID = 5637540588)
 
-, whereas each step of the process can be summarized as follows:
+# ---------------------------------------
+# Get values of this sample
+payment_attributes %>% 
+  filter(customer_id == 5637540588)
 
-1. _Definition of the pool of experts:_ The forecasting experts can be any forecasting method, that returns a list having at least following three named items: mean, upper and lower; whereas the mean corresponds to the point forecast and upper (lower) corresponds to the upper (lower) prediction intervals. For performance reasons it makes sense not to specify too many experts, as all of these have to be evaluated in the following steps.
-2. _Validation:_ The validation process is the core of this algorithm, ultimately deciding which method will be selected and which weight each experts gets. To compare experts from different model families (ets, arima); one cannot rely on information criterions such as e.g. AICC [(see Hyndman, 2013)](https://robjhyndman.com/hyndsight/aic/) but has to perform out-of-sample tests; whereas the following two major types of out-of-sample tests are considered in this package (see figure above):
-    *	*Fixed-origin validation:* To perform a fixed-origin validation, the data has to be split in training, validation and test data, whereas the validation and test data usually corresponds to the required forecasting horizon. Then all experts produce forecasts from a single forecasting origin by only using the training data and validate the forecasting accuracy with the validation data using an appropriate error measure. The selection and combination is then based on these accuracy measures.
-	*   *Rolling-origin validation:* This validation works similar as the previously described fixed-origin evaluation, but it continuously updates its origin. After calculating the forecast for each method from every origin, the forecasting accuracy of each method over all origins is used to determine the performance of an export for a particular time series. While single-origin validation relies only on a single set of observations, rolling-origin validation does not. This makes cross-validation less susceptible to corruption by occurrences unique to a certain origin. However, cross-validation requires also more in-sample data as single validation and is computationally more expensive. Hence, one might choose to reduce the number of origins and thus get the best of both approaches; if enough data is available.
-3. *Selection and combination of experts*: In this step, the accuracy of the experts is compared - possibly for multiple test-sets, the experts are selected and finally combined using a combination operator. The combination operator can be defined by the user and is typically based on the accuracy achieved during the validation process. Furthermore, the package allows to combine methods per horizon; meaning that horizon one might be calculated using other combination weights or even experts than horizon two.
+```
 
-All parameters relevant to the training process (experts, pre-processing methods, validation method, combination method, error function etc.) can be defined by the user and are described in more detail in the [package documentation](./tritelligence.pdf); or directly in the code itself with comment blocks. Also, the dynamic implementation of this package also allows new, custom e.g. combination or weight determination methods to be defined and passed to the algorithm. Please note, however, that sometimes the parameters for the validation process are adjusted because e.g. to little training data is available. To read more about the benefits of forecasting combination and selection, one might start with this [article](https://researchportal.bath.ac.uk/en/publications/another-look-at-forecast-selection-and-combination-evidence-from-).
+Then you might choose to operationalize this model, essentially planning to create a stored procedure on SQL Server that can be used by the DWH developer to get these probabilities. The package `sqlmlutils` provides handy functions that allow us to directly create a skeleton of a stored procedure and execute it directly on the SQL Server. To do this, simply need to do the following:
 
-### Usage
+```R
+# ---------------------------------------
+# Create a function, with input parameters and a result.
 
-Generally, the time series forecasting functions generally expects at least 2 parameters,
+#' Get probabilities form gaussian distribution
+#' 
+#' Your description
+#'
+#' @param payment_data Sample data.frame
+#'
+#' @return data frame with probabilities
+#' @export
+#'
+#' @examples
+get_probabilities <- function(payment_data) {
+  require(tidyverse)
+  require(stats)
+  probs <- payment_data %>% 
+    select(AVG_DSO, STDEV_DSO, Anzahl_Rechnungen, PRECID, Zahlungsbedingungen) %>% 
+    mutate(
+      Zahlungsbedingung = ifelse(grepl('TN', Zahlungsbedingungen), gsub("TN", "", Zahlungsbedingungen), 0)
+    ) %>% 
+    transmute(
+      customer_id = PRECID,
+      sample_size = Anzahl_Rechnungen,
+      sigma = STDEV_DSO,
+      mu = AVG_DSO,
+      threshold = as.numeric(Zahlungsbedingung)
+    ) %>%
+    mutate(
+      prob_late = 1 - pnorm(q = threshold, mean = mu, sd = sigma),
+      prob_5T = 1 - pnorm(q = 5, mean = mu, sd = sigma),
+      prob_10T = 1 - pnorm(q = 10, mean = mu, sd = sigma),
+      prob_15T = 1 - pnorm(q = 15, mean = mu, sd = sigma),
+      prob_30T = 1 - pnorm(q = 30, mean = mu, sd = sigma),
+      prob_60T = 1 - pnorm(q = 60, mean = mu, sd = sigma),
+      prob_90T = 1 - pnorm(q = 90, mean = mu, sd = sigma),
+      sample_size_large_enough = ifelse(sample_size > 29, 1, 0)
+    ) 
+  
+  return(probs)
+}
 
-1. a time series object and
-2. the number horizons to be predicted.
+# ---------------------------------------
+# Get SqlConnectionString to connect to sql server
+# and drop stored procedure if it already exists
+dropSproc(SqlConnectionString, "usp_GetProbabilities")
 
-However, additional parameters can be used to select additional algorithms, combination methods for point forecasts and prediction intervals or/and weight selection methods. Some of the parameters allow also to use user defined functions; for more details about the parameters and how to extend this forecasting library, please see the [technical documentation](./docs/tritelligence.pdf).
-
-Furthermore, the usage slightly differs for different compute contexts; thus, the following subsections introduce the specific parametrization for different compute contexts.
-
-#### Native R
-
-Individual time series can be forecasted directly with the ``tricomb`` method,  more specifically as follows:
-
-```{R}
-# load package
-library(tritelligence)
-# get time series data
-library(Mcomp)
-ts <- M3[[2500]]$x
-# forecast the time series
-predictions <- tritelligence::tricomb(
-  y = ts, # the time series object
-  h = 12  # the number of horizons to predict
-          # potentially additional parameters
+# ---------------------------------------
+# Then create new stored procedure
+createSprocFromFunction(
+  SqlConnectionString, 
+  name = "usp_GetProbabilities",
+  func = get_probabilities, 
+  inputParams = list(payment_data="dataframe")
 )
 ```
 
-For batch forecasting, you can and - for performance reasons - should use multiple cores and parallelize the workload. Parallelized batch forecasting is implemented in the ```forecast_tricomb``` function - which makes use of the native R parallelization packages ```foreach``` and ```doSNOW``` - and can be used as follows:
+This will create a stored procedure on the server you have defined in the connection string at the beginning of the example; which can be called as follows:
 
-```{R}
-# load package
-library(tritelligence)
-# get time series data; here 500 time series of M3
-library(Mcomp)
-ts_col <- M3[[2000:2500]]$x
-# a time series colllection has n elements, each of which is a time series
-# object.
-ts_col <- lapply(m_ts, function(x) {x$x})
-# forecast the time series
-predictions <-
-  tritelligence::forecast_tricomb(
-    ts_col, # time series collection
-    h = 12, # horizons to predict
-    num_cores = NULL, # number of cores; default all
-    num_cores_ignore = 1, # number of cores to ignore for parallelization
-    prog_bar = T, # whether or not a progress bar should be displayed
-    # potentially additional parameters
-)
-```
-
-#### R on Machine Learning Service with SQL Server
-
-Furthermore, this package can be used with the MLS described above directly via T-SQL. If you have installed `tritelligence` correctly (see above), you can predict time series data stored in tables simply by executing the following stored procedure:
-
-```SQL
-EXEC sp_execute_external_script  
- @language = N'R'  
-,@script = N'  
-  library(tritelligence);  
-  result <- rx_sql_tricomb(
-	  connection_string = connection_string,
-	  table = table,
-	  h = horizons,
-	  num_cores = 8,
-    levels = c(95),
-    methods = c("auto_ets", "auto_arima", "auto_thetaf"),
-    point_combination = "median",
-    pi_combination_upper = "median",
-    pi_combination_lower = "median",
-    pool_limit = length(methods),
-    error_fun = "rmse",
-    weight_fun = "inverse",
-    val_h = h,
-    sov_only = F,
-    max_years = 30,
-    val_min_years = 4,
-    cv_min_years = 5,
-    cv_max_samples = 3,
-    allow_negatives = F
-)'
-,@input_data_1 = N''  
-,@output_data_1_name  = N'result'  
-,@params = N'@table NVARCHAR(50), @connection_string NVARCHAR(150), @horizons INT'
-,@connection_string = 'Server=LTYMA01\QWERTZ;Database=FORECASTING_DATA;UID=ruser;PWD=ruser;'
-,@table = 'fcs.InputData'
-,@horizons = @horizons;
-```
-
-, where `@connection_string` is the connection string to the database with the `@table` storing the time series data and `@horizons` is the number of time steps to be predicted. Additional parameters for the tricomb function can be set within the script, please see the [package documentation](./docs/tritelligence.pdf) for the description of the parameters.
-
-Please note, however, that extensive preprocessing , especially for business time series, is often (if not always) required to get accurate predictions. The vast majority of these tasks are implemented directly in the functions provided by `tritelligence`, however, some minimal standards of the input data are expected; more specifically
-
-1. No missing data points; if certain periods do not have any values, a 0 is expected.
-2. Same aggregation level for each data point.
-
-Additionally, one might also think about using calendar adjustment techniques to fight calendar effects (varying business days in a month, varying month lengths etc.) using common techniques before feeding the data into the forecasting algorithm. To facilitate this preprocessing tasks, the package provides a minimal viable stored procedure that takes care of missing values and calendar adjustments automatically. The stored procedure [`usp_tricomb`](./sql/usp_tricomb.sql) can be used as any other stored procedure directly via T-SQL:
-
-```SQL
-USE YOUR_DB;
+```sql
+USE [yourdb]
+GO
 
 DECLARE	@return_value int
 
-EXEC	@return_value = [dbo].[usp_tricomb]
-		    @schema = N'schema', -- schema name
-        @table = N'table', -- table name
-        @date_col = N'date_col', -- column that should be used as date (i.e. Payment Date)
-        @value_col = N'val_col', -- column that should be used for the values (i.e. Sales Amount)
-        @group_col = N'group_col', -- the column that groups the series (i.e. ProductNr)
-        @agg_level = N'Month', -- aggregation level (Year, Quarter, Month, Week, Day)
-        @agg_date_fun = N'MIN', -- aggregation function to be used for date aggregation
-        @calendar_adjustment = N'even', -- calendar adjustment (avg, even, none); see above
-        @omit_leap_days = 1, -- if leap days should be removed, strongy advisable for even and none, with avg you can remove it.
-        @horizons = 18 -- the number of horizons (time-steps) to predict
+EXEC	@return_value = [dbo].[usp_GetProbabilities]
+		@payment_data_outer = N'Select * From dbo.Payments'
 
 SELECT	'Return Value' = @return_value
 
 GO
 ```
 
-Note that parameters for the R function [`tricomb`](./docs/tritelligence.pdf) are not all available per default for the stored procedure, but are rather hard-coded in the stored procedure. However, if desired, they may also be added to the stored procedure parameters similar to the parameter `@horizons`; please note however, that you should check the validity of all inputs fed into R to prevent R-specific error messages.
+## Conclusion
+
+This was a very simple example illustrating how you can operationalize your R Scripts on SQL Server Machine Learning Services 2017. Keep in mind that there MRO provides much more functionality than illustrated in this example; to explore these functionality, please consult e.g. the function reference of [Microsoft](https://docs.microsoft.com/en-us/machine-learning-server/r-reference/revoscaler/revoscaler).
+
