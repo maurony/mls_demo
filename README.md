@@ -1,5 +1,3 @@
-
-
 # Working SQL ML Services
 
 This document demonstrates how to use SQL ML Services, essentially illustrating how to easily operationalize R code in SQL Server.
@@ -176,21 +174,69 @@ This is a simple example workflow of how connect to an existing database with ML
 
 In this example, we use the online installation method to install new packages on the server. Thus, we define a `dependencies.R` file that contains all the packages needed to run the script successfully; which looks as follows:
 
-`dependencies.R`
+`./config/pkgs_server.R`
 
 ```R
-# ---------------------------------------
 # dependencies
-pkgs <- c(
-    'tidyverse'
+package_dependencies <- c(
+  'tidyverse'
 )
 
-# ---------------------------------------
-# install dependencies
-install.packages(pkgs)
+# establish which packages are new
+new_packages <- package_dependencies[!(package_dependencies %in% installed.packages()[, 'Package'])]
+
+# install packages that are not installed yet
+if (length(new_packages))
+    install.packages(new_packages)
+
+# load libraries
+lapply(package_dependencies, require, character.only = TRUE)
 ```
 
-Having defined the packages needed to run the script on the server, we can now proceed to the (or possibly multiple) R script that trains a model and directly computes predictions. 
+Optionally, install also packages that are only need locally for e.g. data exploration etc. as follows:
+`./config/pkgs_client.R`
+```R
+# dependencies
+package_dependencies <- c(
+    'sqlmlutils',
+    'RevoScaleR',
+    'viridis',
+    'RODBCext'
+)
+
+# establish which packages are new
+new_packages <- package_dependencies[!(package_dependencies %in% installed.packages()[, 'Package'])]
+
+if ('sqlmlutils' %in% new_packages)
+    stop('sqlmlutils has to be installed from source, as it is not available at the moment on MRAN. Please
+        download the package from Microsofts github repo: https://github.com/microsoft/sqlmlutils. And install
+        it with the following command: install.packages("path_to_download", repos = NULL, type = "source", dependencies = T). 
+        Also, you might need to install RODBCext; as this is not automatically installed by Microsoft...'
+        )
+
+# install packages that are not installed yet
+if (length(new_packages))
+    install.packages(new_packages)
+
+# load libraries
+lapply(package_dependencies, require, character.only = TRUE)
+```
+Also, one might choose to define all the settings/configurations in a central list; whereas each setting/config can be accessed later on during execution. One way of doing that is the following (supported by R Tools for visual studio for e.g. data connections):
+
+`./config/settings.R`
+```R
+# Application settings file.
+# File content was generated on 23.09.2019 18:04:51.
+
+settings <- as.environment(list())
+
+# [Category] SQL
+# [Description] Database connection string
+# [Editor] ConnectionStringEditor
+settings$dbConnectionDWH <- ''
+```
+
+Having defined the packages requirements and the connection settings to run the script on the server, we can now proceed to the (or possibly multiple) R script that trains a model and directly computes predictions. 
 
 > Note that usually you have multiple scripts or functions, such as e.g. a train script that trains a model and stores it in a table, and a score script that takes this model and computes predictions. However, for illustration purposes, we only use one script that directly performs the predictions.
 
@@ -200,30 +246,12 @@ The script might be structured as follows, essentially sourcing `dependencies.R`
 
 ```R
 # ---------------------------------------
-# source dependencies
-source('dependencies.R')
+# source server dependencies
+source('./config/pkgs_server.R')
 
 # ---------------------------------------
-# source additional dependencies
-pkgs <- c(
-    'sqlmlutils', # used to deploy functions to SQL server
-    'ggplot2', # used for plotting
-    'viridis' # used for fancy coloring
-)
-# check, whether these packages are not installed yet
-new_pkgs <- pkgs[!(pkgs %in% installed.packages()[,"Package"])]
-
-# if there are new packages, install them
-if(length(new_pkgs)) 
-  install.packages(new_pkgs)
-
-# ---------------------------------------
-# import packages
-library(tidyverse)
-library(sqlmlutils)
-library(ggplot2)
-library(viridis)
-
+# source server dependencies
+source('./config/pkgs_client.R')
 ```
 
 After successful package installation with a subsequent import of the same, we can now proceed with connecting to the server. The previously loaded package, makes it very easy to construct a correctly formatted connection string that connects to an existing database server. In [R Tools for VS](https://visualstudio.microsoft.com/vs/features/rtvs/) you can also directly import the connection, essentially creating a settings.R file that creates list containing all the connections etc. To keep tool agnostic, lets use the functionality of `sqlmlutils`:
@@ -458,4 +486,3 @@ GO
 ## Conclusion
 
 This was a very simple example illustrating how you can operationalize your R Scripts on SQL Server Machine Learning Services 2017. Keep in mind that there MRO provides much more functionality than illustrated in this example; to explore these functionality, please consult e.g. the function reference of [Microsoft](https://docs.microsoft.com/en-us/machine-learning-server/r-reference/revoscaler/revoscaler).
-
