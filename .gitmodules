@@ -1,0 +1,3 @@
+[submodule "r-server-fraud-detection"]
+	path = r-server-fraud-detection
+	url = https://github.com/microsoft/r-server-fraud-detection.git
