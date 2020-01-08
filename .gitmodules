@@ -1,3 +1,18 @@
 [submodule "r-server-fraud-detection"]
 	path = r-server-fraud-detection
 	url = https://github.com/microsoft/r-server-fraud-detection.git
+[submodule "r-server-campaign-optimization"]
+	path = r-server-campaign-optimization
+	url = https://github.com/microsoft/r-server-campaign-optimization.git
+[submodule "r-server-loan-chargeoff"]
+	path = r-server-loan-chargeoff
+	url = https://github.com/microsoft/r-server-loan-chargeoff.git
+[submodule "r-server-loan-credit-risk"]
+	path = r-server-loan-credit-risk
+	url = https://github.com/microsoft/r-server-loan-credit-risk.git
+[submodule "ml-server-text-classification"]
+	path = ml-server-text-classification
+	url = https://github.com/microsoft/ml-server-text-classification.git
+[submodule "SQL-Server-R-Services-Samples"]
+	path = SQL-Server-R-Services-Samples
+	url = https://github.com/microsoft/SQL-Server-R-Services-Samples.git
