@@ -12,7 +12,9 @@ exec sp_execute_external_script
     new_rentaldata$WeekDay <- factor(new_rentaldata$WeekDay)
     rental_model = unserialize(rx_model)
     rental_predictions = rxPredict(rental_model, new_rentaldata, 
-        extraVarsToWrite = c("Year", "Month", "Day"))
+        writeModelVars = TRUE)
+    rental_predictions <- rental_predictions[c("Month", "Day", 
+        "RentalCount_Pred")]
     return(rental_predictions)
 }
 result <- func(rx_model = rx_model, new_rentaldata = new_rentaldata)

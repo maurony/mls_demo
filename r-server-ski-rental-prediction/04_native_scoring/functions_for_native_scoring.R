@@ -1,5 +1,5 @@
 # load packages or install them if they do not exist.
-setwd("~/mls_demo/ski_rental")
+setwd("~/mls_demo/r-server-ski-rental-prediction")
 
 source('01_installation/dependencies.R')
 
