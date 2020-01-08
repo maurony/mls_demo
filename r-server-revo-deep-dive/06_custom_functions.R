@@ -29,6 +29,12 @@ sqlCompute <- RxInSqlServer(
 # set sql compute context
 rxSetComputeContext(sqlCompute)
 
+# In this exercise, you will create a custom R function that simulates a common casino consisting of rolling a pair of dice. Rules of the game determine a win or loss outcome:
+#  
+# - Roll a 7 or 11 on your initial roll, you win.
+# - Roll 2, 3, or 12, you lose.
+# - Roll a 4, 5, 6, 8, 9, or 10, that number becomes your point, and you continue rolling until you either roll your point again (in which case you win) or roll a 7, in which case you lose.
+
 rollDice <- function()
 {
   result <- NULL
