@@ -182,7 +182,7 @@ The available templates are listed below.
 | Template | Documentation |
 | -------- | -------- |
 |[Campaign Optimization](https://github.com/Microsoft/r-server-campaign-optimization)|[Website](https://microsoft.github.io/r-server-campaign-optimization/)|
-|[Customer Churn](Churn)|[Repository](Churn)|
+|[Customer Churn](Churn)|[Repository](SQL-Server-R-Services-Samples/Churn)|
 |[Energy Demand Forecasting](EnergyDemandForecasting)|[Repository](EnergyDemandForecasting)|
 |[Fraud Detection](https://github.com/Microsoft/r-server-fraud-detection) |[Website](https://microsoft.github.io/r-server-fraud-detection/)|
 |[Galaxy Classification](Galaxies)|[Repository](https://github.com/Microsoft/SQL-Server-R-Services-Samples/blob/master/Galaxies)|
