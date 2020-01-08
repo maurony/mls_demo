@@ -182,17 +182,17 @@ The available templates are listed below.
 | Template | Documentation |
 | -------- | -------- |
 |[Campaign Optimization](https://github.com/Microsoft/r-server-campaign-optimization)|[Website](https://microsoft.github.io/r-server-campaign-optimization/)|
-|[Customer Churn](Churn)|[Repository](SQL-Server-R-Services-Samples/Churn)|
-|[Energy Demand Forecasting](EnergyDemandForecasting)|[Repository](EnergyDemandForecasting)|
+|[Customer Churn](Churn)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
+|[Energy Demand Forecasting](EnergyDemandForecasting)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
 |[Fraud Detection](https://github.com/Microsoft/r-server-fraud-detection) |[Website](https://microsoft.github.io/r-server-fraud-detection/)|
-|[Galaxy Classification](Galaxies)|[Repository](https://github.com/Microsoft/SQL-Server-R-Services-Samples/blob/master/Galaxies)|
+|[Galaxy Classification](Galaxies)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
 |[Length of Stay](https://github.com/Microsoft/r-server-hospital-length-of-stay)|[Website](https://microsoft.github.io/r-server-hospital-length-of-stay/)|
 |[Loan Chargeoff Prediction](https://github.com/Microsoft/r-server-loan-chargeoff)|[Website](https://microsoft.github.io//r-server-loan-chargeoff/)|
 |[Loan Credit Risk](https://github.com/Microsoft/r-server-loan-credit-risk)|[Website](https://microsoft.github.io/r-server-loan-credit-risk/)|
-|[Predictive Maintenance (1)](PredictiveMaintenance)|[Repository](PredictiveMaintenace)|
-|[Predictive Maintenance (2)](PredictiveMaintenanceModelingGuide)|[Repository](PredictiveMaintenanceModelingGuide)|
-|[Product Cross Sell](ProductCrossSell)|[Repository](ProductCrossSell)|
-|[Resume Matching](SQLOptimizationTips-Resume-Matching)|[Repository](SQLOptimizationTips-Resume-Matching)|
-|[Retail Forecasting](RetailForecasting)|[Repository](RetailForecasting)|
+|[Predictive Maintenance (1)](PredictiveMaintenance)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
+|[Predictive Maintenance (2)](PredictiveMaintenanceModelingGuide)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
+|[Product Cross Sell](ProductCrossSell)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
+|[Resume Matching](SQLOptimizationTips-Resume-Matching)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
+|[Retail Forecasting](RetailForecasting)|[Repository](https://github.com/microsoft/SQL-Server-R-Services-Samples/)|
 |[Ski Rental Prediction](SkiRentalPrediction)|[Repository](r-server-ski-rental-prediction)|
 |[Text Classification](https://github.com/Microsoft/ml-server-text-classification)|[Website](https://microsoft.github.io/ml-server-text-classification/)|
