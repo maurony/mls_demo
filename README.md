@@ -168,6 +168,31 @@ This allows to
 
 If you keep you ML Server and/or ML Services R Version in sync with your MRO Client R Version, different versions of the individual R packages should be handled.
 
-## Ski rental example
+### Machine Learning Templates
+Microsoft has developed a number of templates for solving specific machine learning problems with SQL Server ML Services. These templates provides a higher starting point and aims to enable users to quickly build and deploy solutions. Each template includes the following components:
 
-In this tutorial, you will learn how to create a predictive model in R and deploy it with SQL Server 2016 (and above) Machine Learning Services. More specifically, we will try to predict how many pairs of ski a ski rental company will rent to customers using information about the date, weather and holiday.
+- Predefined *data schema* applicable to the specific domain
+- Domain specific *data processing* and *feature engineering* steps
+- Preselected *training *algorithms fit to the specific domain 
+- Domain specific *evaluation metrics* where applicable
+- *Prediction (scoring)* in production.  
+
+The available templates are listed below.
+
+| Template | Documentation |
+| -------- | -------- |
+|[Campaign Optimization](https://github.com/Microsoft/r-server-campaign-optimization)|[Website](https://microsoft.github.io/r-server-campaign-optimization/)|
+|[Customer Churn](Churn)|[Repository](Churn)|
+|[Energy Demand Forecasting](EnergyDemandForecasting)|[Repository](EnergyDemandForecasting)|
+|[Fraud Detection](https://github.com/Microsoft/r-server-fraud-detection) |[Website](https://microsoft.github.io/r-server-fraud-detection/)|
+|[Galaxy Classification](Galaxies)|[Repository](https://github.com/Microsoft/SQL-Server-R-Services-Samples/blob/master/Galaxies)|
+|[Length of Stay](https://github.com/Microsoft/r-server-hospital-length-of-stay)|[Website](https://microsoft.github.io/r-server-hospital-length-of-stay/)|
+|[Loan Chargeoff Prediction](https://github.com/Microsoft/r-server-loan-chargeoff)|[Website](https://microsoft.github.io//r-server-loan-chargeoff/)|
+|[Loan Credit Risk](https://github.com/Microsoft/r-server-loan-credit-risk)|[Website](https://microsoft.github.io/r-server-loan-credit-risk/)|
+|[Predictive Maintenance (1)](PredictiveMaintenance)|[Repository](PredictiveMaintenace)|
+|[Predictive Maintenance (2)](PredictiveMaintenanceModelingGuide)|[Repository](PredictiveMaintenanceModelingGuide)|
+|[Product Cross Sell](ProductCrossSell)|[Repository](ProductCrossSell)|
+|[Resume Matching](SQLOptimizationTips-Resume-Matching)|[Repository](SQLOptimizationTips-Resume-Matching)|
+|[Retail Forecasting](RetailForecasting)|[Repository](RetailForecasting)|
+|[Ski Rental Prediction](SkiRentalPrediction)|[Repository](r-server-ski-rental-prediction)|
+|[Text Classification](https://github.com/Microsoft/ml-server-text-classification)|[Website](https://microsoft.github.io/ml-server-text-classification/)|
